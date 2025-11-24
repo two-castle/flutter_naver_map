@@ -148,10 +148,24 @@ class _NaverMapState extends State<NaverMap>
       child: Stack(children: [
         _naverLogo(
             align: options.logoAlign, clickEnable: options.logoClickEnable),
-        if (options.scaleBarEnable)
-          _scaleBar(initCameraPosition: options.initialCameraPosition),
-        if (options.locationButtonEnable)
-          _locationButton(nightModeEnable: options.nightModeEnable),
+        Positioned(
+          right: 0, // 우측 정렬
+          bottom: NMapLogoWidget.height + 12, // 하단 여백 (로고 등 고려, 필요시 값 조정)
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center, // 수직 중앙 정렬
+            children: [
+              if (options.scaleBarEnable) ...[
+                // 축척 바 (Scale Bar)
+                _scaleBarRaw(initCameraPosition: options.initialCameraPosition),
+                const SizedBox(width: 8), // 버튼과 축척 바 사이 간격
+              ],
+              if (options.locationButtonEnable)
+              // 현 위치 버튼 (Location Button)
+                _locationButtonRaw(nightModeEnable: options.nightModeEnable),
+            ],
+          ),
+        ),
       ]),
     );
   }
@@ -205,6 +219,34 @@ class _NaverMapState extends State<NaverMap>
                           mapController: snapshot.data,
                           nightMode: nightModeEnable);
                     }))));
+  }
+
+  // 기존 _scaleBar 대신 사용 (Positioned 제거됨)
+  Widget _scaleBarRaw({required NCameraPosition? initCameraPosition}) {
+    return SizedBox(
+        height: NMapLogoWidget.height,
+        child: Center(
+            child: FutureBuilder(
+                future: controllerCompleter.future,
+                builder: (context, snapshot) {
+                  return NMapScaleBarWidget(
+                      naverMapController: snapshot.data,
+                      initCameraPosition: initCameraPosition);
+                })));
+  }
+
+  // 기존 _locationButton 대신 사용 (Positioned 제거됨)
+  Widget _locationButtonRaw({required bool nightModeEnable}) {
+    return SizedBox(
+        width: NMapLogoWidget.width,
+        child: Center(
+            child: FutureBuilder(
+                future: controllerCompleter.future,
+                builder: (context, snapshot) {
+                  return NMyLocationButtonWidget(
+                      mapController: snapshot.data,
+                      nightMode: nightModeEnable);
+                })));
   }
 
   /*
